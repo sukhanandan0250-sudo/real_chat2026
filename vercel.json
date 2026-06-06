@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "installCommand": "npm install --prefix frontend && npm install --prefix backend",
-  "buildCommand": "npm --prefix frontend run build",
+  "installCommand": "if [ -f frontend/package.json ]; then npm install --prefix frontend && npm install --prefix backend; else npm install && npm install --prefix ../frontend; fi",
+  "buildCommand": "if [ -f frontend/package.json ]; then npm --prefix frontend run build; else npm --prefix ../frontend run build && mkdir -p frontend && cp -R ../frontend/build frontend/build; fi",
   "outputDirectory": "frontend/build",
   "rewrites": [
     {

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 import socket from "../socket";
 import useConversation from "../context/useConversation";
@@ -99,11 +99,19 @@ const Chat = () => {
     }
 
     setCurrentUser(user);
-    socket.emit("registerUser", user._id);
 
-    axios.get("/user/users", {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(res => setUsers(res.data))
+    // ensure socket is connected before registering user room
+    const register = () => socket.emit("registerUser", user._id);
+
+    if (socket.connected) {
+      register();
+    } else {
+      socket.connect();
+      socket.once("connect", register);
+    }
+
+    api.get("/user/users")
+      .then(res => setUsers(res.data))
       .catch(() => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -147,9 +155,8 @@ const Chat = () => {
   useEffect(() => {
     if (!selectedconversation || !token) return;
 
-    axios.get(`/message/get/${selectedconversation._id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(res => setMessages(res.data))
+    api.get(`/message/get/${selectedconversation._id}`)
+      .then(res => setMessages(res.data))
       .catch(() => setError("Could not load messages"));
   }, [selectedconversation, token, setMessages]);
 
@@ -464,23 +471,17 @@ const Chat = () => {
       if (pendingAttachment?.file) {
         const formData = new FormData();
         formData.append("file", pendingAttachment.file);
-        const uploadRes = await axios.post(
+        const uploadRes = await api.post(
           "/message/upload",
           formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data"
-            }
-          }
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
         attachment = uploadRes.data;
       }
 
-      const res = await axios.post(
+      const res = await api.post(
         `/message/send/${selectedconversation._id}`,
-        { text, attachment },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { text, attachment }
       );
 
       socket.emit("sendMessage", res.data);
@@ -508,6 +509,7 @@ const Chat = () => {
   };
 
   const logout = () => {
+    socket.disconnect();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setCurrentUser(null);
@@ -520,10 +522,9 @@ const Chat = () => {
     if (!query) return;
 
     try {
-      const res = await axios.post(
+      const res = await api.post(
         "/user/contacts",
-        { query },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { query }
       );
 
       setUsers(prev => prev.some(user => user._id === res.data._id) ? prev : [...prev, res.data]);
@@ -541,10 +542,9 @@ const Chat = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.put(
+      const res = await api.put(
         "/user/me",
-        profileForm,
-        { headers: { Authorization: `Bearer ${token}` } }
+        profileForm
       );
 
       localStorage.setItem("user", JSON.stringify(res.data));
@@ -563,9 +563,7 @@ const Chat = () => {
     if (!ok) return;
 
     try {
-      await axios.delete("/user/me", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete("/user/me");
       logout();
     } catch (err) {
       setError(err.response?.data?.message || "Could not delete profile");

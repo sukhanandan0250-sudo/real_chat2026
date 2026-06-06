@@ -1,7 +1,8 @@
-import axios from "axios";
+import api from "../api";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useConversation from "../context/useConversation";
+import socket from "../socket";
 import "./chat.css";
 
 const Login = ()=>{
@@ -23,10 +24,13 @@ const Login = ()=>{
     try {
       const endpoint = mode === "login" ? "login" : "signup";
       const payload = mode === "login" ? { email, password } : { name, username, email, password };
-      const res = await axios.post(`/user/${endpoint}`, payload);
-      localStorage.setItem("token",res.data.token);
+      const res = await api.post(`/user/${endpoint}`, payload);
+      localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       setCurrentUser(res.data.user);
+      // connect socket and register user room after login
+      socket.connect();
+      socket.emit("registerUser", res.data.user._id);
       navigate("/chat");
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
