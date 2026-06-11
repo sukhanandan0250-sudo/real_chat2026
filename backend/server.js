@@ -39,8 +39,10 @@ app.use(express.json({ limit: "25mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use((req, res, next) => {
+  // Vercel routes /api/... to this function — strip the /api prefix so
+  // Express routes like /user/login still match correctly.
   if (req.url.startsWith("/api/")) {
-    req.url = req.url.slice(4);
+    req.url = req.url.slice(4); // "/api/user/login" → "/user/login"
   }
   next();
 });

@@ -1,29 +1,28 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "installCommand": "if [ -f frontend/package.json ]; then npm install --prefix frontend && npm install --prefix backend; else npm install && npm install --prefix ../frontend; fi",
-  "buildCommand": "if [ -f frontend/package.json ]; then npm --prefix frontend run build; else npm --prefix ../frontend run build && mkdir -p frontend && cp -R ../frontend/build frontend/build; fi",
+  "installCommand": "npm install --prefix frontend && npm install --prefix backend",
+  "buildCommand": "npm --prefix frontend run build",
   "outputDirectory": "frontend/build",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "source": "/api/:path*",
+      "destination": "/api/index"
     },
     {
-      "source": "/user/(.*)",
-      "destination": "/api/user/$1"
+      "source": "/user/:path*",
+      "destination": "/api/index"
     },
     {
-      "source": "/message/(.*)",
-      "destination": "/api/message/$1"
+      "source": "/message/:path*",
+      "destination": "/api/index"
     },
     {
-      "source": "/uploads/(.*)",
-      "destination": "/api/uploads/$1"
+      "source": "/uploads/:path*",
+      "destination": "/api/index"
     },
     {
-      "source": "/socket.io/(.*)",
-      "destination": "/api/socket.io/$1"
+      "source": "/socket.io/:path*",
+      "destination": "/api/index"
     },
     {
       "source": "/(.*)",
