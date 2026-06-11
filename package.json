@@ -1,8 +1,7 @@
 {
   "name": "real-chat2026",
   "private": true,
-  "type": "module",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build"
+    "build": "npm install --prefix frontend && npm run build --prefix frontend"
   }
 }
