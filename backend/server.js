@@ -54,11 +54,13 @@ app.get("/", (req, res) => {
 const connectDB = async () => {
   if (isMongoConnected) return;
 
-  if (!process.env.MONGO_URI) {
-    throw new Error("MONGO_URI is not set");
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+
+  if (!mongoUri) {
+    throw new Error("MONGODB_URI or MONGO_URI is not set");
   }
 
-  await mongoose.connect(process.env.MONGO_URI);
+  await mongoose.connect(mongoUri);
   isMongoConnected = true;
   console.log("MongoDB connected");
 };
@@ -138,13 +140,14 @@ io.on("connection", (socket) => {
 });
 
 const startServer = async () => {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+
   try {
     await connectDB();
-    server.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
   } catch (err) {
-    console.log("DB Error:", err);
+    console.error("DB Error:", err.message);
   }
 };
 
