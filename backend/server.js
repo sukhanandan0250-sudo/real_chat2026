@@ -22,7 +22,18 @@ let isMongoConnected = false;
 // ✅ create socket.io server
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map(o => o.trim())
-  : ["http://localhost:3000"];
+  : ["http://localhost:3000", "https://real-chat2026.vercel.app"];
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true
+};
 
 const io = new Server(server, {
   cors: {
@@ -31,10 +42,7 @@ const io = new Server(server, {
   }
 });
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "25mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

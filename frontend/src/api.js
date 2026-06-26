@@ -1,9 +1,11 @@
 import axios from "axios";
 
-// In production (Vercel), API calls go to the same domain via rewrites.
-// In local dev, proxy in package.json forwards to localhost:8000.
+const productionApiUrl = "https://real-chat-backend2026.onrender.com";
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "",
+  baseURL:
+    process.env.REACT_APP_API_URL ||
+    (process.env.NODE_ENV === "production" ? productionApiUrl : ""),
 });
 
 // Attach token to every request automatically
