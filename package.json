@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm install --prefix frontend && npm run build --prefix frontend"
+    "build": "npm install --prefix frontend && npm run build --prefix frontend && node -e \"fs.cpSync('frontend/build','build',{recursive:true,force:true})\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
