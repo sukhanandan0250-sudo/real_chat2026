@@ -32,7 +32,9 @@ const corsOptions = {
 
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
-  credentials: true
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 };
 
 const io = new Server(server, {
@@ -43,6 +45,7 @@ const io = new Server(server, {
 });
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json({ limit: "25mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -84,6 +87,7 @@ app.use(async (req, res, next) => {
 
 // routes
 app.use("/user", userRoutes);
+app.use("/", userRoutes);
 app.use("/message", messageRoutes);
 
 // socket.io logic
