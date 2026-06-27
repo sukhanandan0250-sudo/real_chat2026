@@ -52,7 +52,9 @@ const Login = () => {
       if (err.code === "ECONNABORTED" || !err.response) {
         setError("Server is taking too long to respond. Please try again.");
       } else {
-        setError(err.response?.data?.message || "Something went wrong");
+        // Show backend error message, fallback to generic
+        const msg = err.response?.data?.message || err.response?.data?.error || "Something went wrong";
+        setError(msg);
       }
     } finally {
       setLoading(false);
