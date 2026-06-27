@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const productionSocketUrl = "https://real-chat-backend2026.onrender.com";
+const productionSocketUrl = "https://real-chat2026.onrender.com";
 
 const socketURL =
   process.env.REACT_APP_SOCKET_URL ||

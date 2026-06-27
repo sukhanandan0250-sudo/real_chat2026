@@ -22,7 +22,7 @@ let isMongoConnected = false;
 // ✅ create socket.io server
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map(o => o.trim())
-  : ["http://localhost:3000", "https://real-chat2026.vercel.app"];
+  : ["http://localhost:3000", "https://real-chat2026.vercel.app", "https://real-chat2026.onrender.com"];
 
 const corsOptions = {
   origin(origin, callback) {

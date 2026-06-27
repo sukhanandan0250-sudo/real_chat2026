@@ -1,11 +1,13 @@
 import axios from "axios";
 
-const productionApiUrl = "https://real-chat-backend2026.onrender.com";
+const productionApiUrl = "https://real-chat2026.onrender.com";
 
 const api = axios.create({
   baseURL:
     process.env.REACT_APP_API_URL ||
     (process.env.NODE_ENV === "production" ? productionApiUrl : ""),
+  timeout: 30000, // 30s timeout — Render free tier can be slow on cold start
+  withCredentials: true,
 });
 
 // Attach token to every request automatically
