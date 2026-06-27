@@ -26,15 +26,25 @@ const allowedOrigins = process.env.CORS_ORIGINS
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (mobile apps, curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
+    // Allow any vercel.app preview deployments for the same project
+    if (origin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
+    console.warn(`CORS blocked for origin: ${origin}`);
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  optionsSuccessStatus: 200  // Some browsers (IE11) choke on 204
 };
 
 const io = new Server(server, {
@@ -44,8 +54,9 @@ const io = new Server(server, {
   }
 });
 
-app.use(cors(corsOptions));
+// Handle ALL preflight requests first, before any other middleware
 app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "25mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -60,6 +71,11 @@ app.use((req, res, next) => {
 
 app.get("/", (req, res) => {
   res.send("Backend running successfully");
+});
+
+// Health check endpoint for Render uptime monitoring
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 const connectDB = async () => {
@@ -89,6 +105,13 @@ app.use(async (req, res, next) => {
 app.use("/user", userRoutes);
 app.use("/", userRoutes);
 app.use("/message", messageRoutes);
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("Server error:", err.message);
+  const status = err.status || 500;
+  res.status(status).json({ message: err.message || "Internal server error" });
+});
 
 // socket.io logic
 io.on("connection", (socket) => {
